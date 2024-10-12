@@ -6,7 +6,7 @@
 # calculations added.
 # 
 # Author: Kyle Slinker, kyle.slinker@ncssm.edu
-# Date: Nov 18 2019
+# Date: May 24 2024
 ################################
 
 
@@ -16,13 +16,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-#choose time step (years)
-dt=0.0002
 
-#choose maximum time (years)
+################################
+# Simulation initialization
+# dt: Time step in years
+# tmax: Total simulation time in years
+# order: Simulation order, must be 1 (DVAT) or 4 (RK4)
+# objects: A list of objects to include in the simulation
+################################
+dt=0.002
 tmax=0.2
-
-#choose objects to include in simulation
+order=1
 #objects = np.array(["Sun","Jupiter","Io","Europa","Ganymede","Callisto"])
 #objects = np.array(["Sun","Earth","Moon"])
 #objects = np.array(["Sun","Mercury","Venus","Earth","Moon","Mars","Jupiter","Io","Europa","Ganymede","Callisto","Saturn","Titan","Uranus","Titania","Neptune","Triton","Pluto"])
@@ -159,19 +163,11 @@ for i in range(0,nmax):
 
 def get_potential(p1,p2,m1,m2,g):
     if np.array_equal(p1,p2):
-        return 0
+        return 0.0
     else:
-        ################################
-        #Write your code between here...
+        #this function is currently incomplete; add your own code to finish it!
+        return #include the result to be returned
         
-        
-        
-        
-        
-        return 
-        #...and here.
-        ################################
-
 #description of function get_acceleration:
 # - find the acceleration of object 1 caused by object 2;
 #   return zero if the objects are the same object
@@ -186,16 +182,8 @@ def get_acceleration(p1,p2,m2,g):
     if np.array_equal(p1,p2):
         return np.array([0,0,0])
     else:
-        ################################
-        #Write your code between here...
-        
-        
-        
-        
-        
-        return 
-        #...and here.
-        ################################
+        #this function is currently incomplete; add your own code to finish it!
+        return #include the result to be returned
 
 
 #take a step using DVATs
@@ -272,89 +260,108 @@ def fourth_order_step(x,v,m,nmax,newtong,saveq):
     return x,v
 
 
+
+
+#wrapper for first_order_step and fourth_order_step
+def take_step(order,x,v,m,nmax,newtong,saveq):
+    if order==1:
+        x,v=first_order_step(x,v,m,nmax,newtong,saveq)
+    elif order==4:
+        x,v=fourth_order_step(x,v,m,nmax,newtong,saveq)
+    return x,v
+
+
+
+
 #evolve the system; this is the part where the simulation is actually carried out
 for t in range(0,(int)(tmax/dt)):
-    x,v=first_order_step(x,v,m,nmax,newtong,t%10==0)
+    x,v=take_step(order,x,v,m,nmax,newtong,t%10==0)
+    
+
+    
+    
+
+################################
+#calculations needed for plotting
+################################
+
+#for use with trajectory plot
+def plot_object_trajectory(obj,origin):
+    objindex=np.where(objects==obj)[0][0]
+    originindex=np.where(objects==origin)[0][0]
+    xcoord=x[objindex,0]-x[originindex,0]
+    ycoord=x[objindex,1]-x[originindex,1]
+    return plt.plot(xcoord,ycoord)
 
 
 
-f=plt.figure()
-plt.axes().set_aspect('equal','datalim')
-plt.plot(x[1,0]-x[0,0],x[1,1]-x[0,1])
-plt.plot(x[2,0]-x[0,0],x[2,1]-x[0,1])
-plt.plot(x[3,0]-x[0,0],x[3,1]-x[0,1])
-plt.plot(x[4,0]-x[0,0],x[4,1]-x[0,1])
-plt.xlabel("x (AU)")
-plt.ylabel("y (AU)")
-plt.title("Inner Solar System Trajectories")
-plt.show()
-f.savefig("inner_solar_system_trajectories.png",bbox_inches='tight')
-
-f=plt.figure()
-plt.axes().set_aspect('equal','datalim')
-plt.plot(x[5,0]-x[0,0],x[5,1]-x[0,1])
-plt.plot(x[6,0]-x[0,0],x[6,1]-x[0,1])
-plt.plot(x[7,0]-x[0,0],x[7,1]-x[0,1])
-plt.plot(x[8,0]-x[0,0],x[8,1]-x[0,1])
-plt.xlabel("x (AU)")
-plt.ylabel("y (AU)")
-plt.title("Outer Solar System Trajectories")
-plt.show()
-f.savefig("outer_solar_system_trajectories.png",bbox_inches='tight')
+#for use with separation plot
+tvals=(tmax/((x[0,0]).size))*np.array(range(0,((x[0,0]).size)))
+def plot_object_separation(obj,origin):
+    objindex=np.where(objects==obj)[0][0]
+    originindex=np.where(objects==origin)[0][0]
+    return np.sqrt(np.sum((x[objindex]-x[originindex])**2,axis=0))
 
 
-
-f=plt.figure()
-sep=np.sqrt(np.sum((x[1]-x[0])**2,axis=0))
-plt.plot((tmax/sep.size)*np.array(range(0,sep.size)),sep)
-sep=np.sqrt(np.sum((x[2]-x[0])**2,axis=0))
-plt.plot((tmax/sep.size)*np.array(range(0,sep.size)),sep)
-sep=np.sqrt(np.sum((x[3]-x[0])**2,axis=0))
-plt.plot((tmax/sep.size)*np.array(range(0,sep.size)),sep)
-sep=np.sqrt(np.sum((x[4]-x[0])**2,axis=0))
-plt.plot((tmax/sep.size)*np.array(range(0,sep.size)),sep)
-plt.xlabel("Time (years)")
-plt.ylabel("Separation (AU)")
-plt.title("Inner Solar System Separations")
-plt.show()
-f.savefig("inner_solar_system_separations.png",bbox_inches='tight')
-
-f=plt.figure()
-sep=np.sqrt(np.sum((x[5]-x[0])**2,axis=0))
-plt.plot((tmax/sep.size)*np.array(range(0,sep.size)),sep)
-sep=np.sqrt(np.sum((x[6]-x[0])**2,axis=0))
-plt.plot((tmax/sep.size)*np.array(range(0,sep.size)),sep)
-sep=np.sqrt(np.sum((x[7]-x[0])**2,axis=0))
-plt.plot((tmax/sep.size)*np.array(range(0,sep.size)),sep)
-sep=np.sqrt(np.sum((x[8]-x[0])**2,axis=0))
-plt.plot((tmax/sep.size)*np.array(range(0,sep.size)),sep)
-plt.xlabel("Time (years)")
-plt.ylabel("Separation (AU)")
-plt.title("Outer Solar System Separations")
-plt.show()
-f.savefig("Outer_solar_system_separations.png",bbox_inches='tight')
-
-
-
-
-
-
-energy=np.zeros(x.shape[-1])
+#for use with energy plot
+delta_energy=np.zeros(x.shape[-1])
 for t in range(0,x.shape[-1]):
-    energy[t]=0
+    delta_energy[t]=0
     for i in range(0,nmax):
-        energy[t]+=0.5*m[i]*np.sum((v[i,:,t])**2)
+        delta_energy[t]+=0.5*m[i]*np.sum((v[i,:,t])**2)
         for j in range(0,nmax):
-            energy[t]+=0.5*get_potential(x[i,:,t],x[j,:,t],m[i],m[j],newtong)
+            delta_energy[t]+=0.5*get_potential(x[i,:,t],x[j,:,t],m[i],m[j],newtong)
 
-energy/=energy[0]
-energy-=1
-energy*=100
+delta_energy/=delta_energy[0]
+delta_energy-=1
+delta_energy*=100
 
+
+################################
+#do the actual plotting
+################################
+
+#trajectory plot
 f=plt.figure()
-plt.plot((tmax/energy.size)*(np.array(range(0,energy.size))),energy)
+plt.axes().set_aspect('equal','datalim')
+plot_object_trajectory("Mercury","Sun")
+plot_object_trajectory("Venus","Sun")
+plot_object_trajectory("Earth","Sun")
+plot_object_trajectory("Mars","Sun")
+#plot_object_trajectory("Jupiter","Sun")
+#plot_object_trajectory("Saturn","Sun")
+#plot_object_trajectory("Uranus","Sun")
+#plot_object_trajectory("Neptune","Sun")
+plt.xlabel("x (AU)")
+plt.ylabel("y (AU)")
+plt.title("Trajectories")
+plt.show()
+#f.savefig("trajectories.png",bbox_inches='tight')
+
+
+#separation plot
+f=plt.figure()
+plt.plot(tvals,plot_object_separation("Mercury","Sun"))
+plt.plot(tvals,plot_object_separation("Venus","Sun"))
+plt.plot(tvals,plot_object_separation("Earth","Sun"))
+plt.plot(tvals,plot_object_separation("Mars","Sun"))
+#plt.plot(tvals,plot_object_separation("Jupiter","Sun"))
+#plt.plot(tvals,plot_object_separation("Saturn","Sun"))
+#plt.plot(tvals,plot_object_separation("Uranus","Sun"))
+#plt.plot(tvals,plot_object_separation("Neptune","Sun"))
+plt.xlabel("Time (years)")
+plt.ylabel("Separation (AU)")
+plt.title("Separations")
+plt.show()
+#f.savefig("separations.png",bbox_inches='tight')
+
+
+
+#energy plot
+f=plt.figure()
+plt.plot(tvals,delta_energy)
 plt.xlabel("Time (years)")
 plt.ylabel("Relative Change in Energy (%)")
 plt.title("Energy Error")
 plt.show()
-f.savefig("energy_error.png",bbox_inches='tight')
+#f.savefig("energy_error.png",bbox_inches='tight')
